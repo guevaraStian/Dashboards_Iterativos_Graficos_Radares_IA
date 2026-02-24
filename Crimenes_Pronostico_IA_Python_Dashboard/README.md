@@ -37,7 +37,7 @@ git push origin master
 Posteriormente ingresamos a la carpeta creada e instalamos las librerias y ejecutamos el proyecto.
 
 ```Terminal de comandos
-pip install bleak flask pandas dash
+pip install bleak flask pandas dash scikit-learn'
 python app.py
 ```
 
