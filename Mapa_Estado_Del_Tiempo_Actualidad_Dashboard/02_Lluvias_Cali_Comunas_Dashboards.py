@@ -5,7 +5,6 @@
 # pip 25.3.1
 # Python 3.13.1
 
-
 import requests 
 import pandas as pd
 import dash
@@ -41,75 +40,113 @@ comunas = {
 }
 
 # Se consulta una base de datos de una api y se guardan los datos en variables
-def obtener_lluvia(lat, lon):
+def obtener_clima_actual(lat, lon):
     url = (
-    f"https://api.open-meteo.com/v1/forecast"
-    f"?latitude={lat}"
-    f"&longitude={lon}"
-    f"&current_weather=true"
-    f"&hourly=precipitation"
-    f"&timezone=auto")
+        f"https://api.open-meteo.com/v1/forecast"
+        f"?latitude={lat}"
+        f"&longitude={lon}"
+        f"&current_weather=true"
+        f"&hourly=precipitation"
+        f"&timezone=auto"
+    )
     try:
-        response = requests.get(url, timeout=5)  # timeout 5 segundos
+        response = requests.get(url, timeout=5)
         data = response.json()
-        return data.get("current_weather", {}).get("precipitation", 0)
-    except requests.exceptions.Timeout:
-        print(f"Timeout al consultar {lat}, {lon}")
-        return 0
-    except requests.exceptions.RequestException as e:
-        print(f"Error al consultar {lat}, {lon}: {e}")
-        return 0
 
-# De los datos que vienen de la api base de datos se extraen los relacionados a lluvia
+        current = data.get("current_weather", {})
+        hourly = data.get("hourly", {})
+
+        hora_actual = current.get("time")
+        precipitacion = 0
+
+        if "time" in hourly and hora_actual in hourly["time"]:
+            index = hourly["time"].index(hora_actual)
+            precipitacion = hourly["precipitation"][index]
+
+        return {
+            "temperatura": current.get("temperature", 0),
+            "viento": current.get("windspeed", 0),
+            "weathercode": current.get("weathercode", 0),
+            "precipitacion": precipitacion
+        }
+
+    except:
+        return None
+
+# Consultar clima
 resultados = []
+
 for comuna, coord in comunas.items():
-    lluvia = obtener_lluvia(coord["lat"], coord["lon"])
-    resultados.append({
-        "Comuna": comuna,
-        "Lat": coord["lat"],
-        "Lon": coord["lon"],
-        "Lluvia (mm)": lluvia
-    })
+    clima = obtener_clima_actual(coord["lat"], coord["lon"])
+    
+    if clima:
+        resultados.append({
+            "Comuna": comuna,
+            "Lat": coord["lat"],
+            "Lon": coord["lon"],
+            "Temperatura (°C)": clima["temperatura"],
+            "Viento (km/h)": clima["viento"],
+            "Lluvia (mm)": clima["precipitacion"],
+            "WeatherCode": clima["weathercode"]
+        })
 
 df = pd.DataFrame(resultados)
 
-# En la siguiente Función se crea color degradado amarillo → azul
-def color_degradado(mm, max_mm=10):
-    ratio = min(mm / max_mm, 1)
-    r = int(255 * (1 - ratio))
-    g = int(255 * (1 - ratio))
-    b = int(255 * ratio)
+# FUNCIÓN DE COLOR POR WEATHERCODE
+
+def color_weathercode(code, max_code=95):
+    """
+    0  -> Amarillo (255,255,0)
+    95 -> Azul oscuro (0,0,139)
+    """
+    ratio = min(max(code / max_code, 0), 1)
+
+    # Amarillo
+    r1, g1, b1 = 255, 255, 0
+    # Azul oscuro
+    r2, g2, b2 = 0, 0, 139
+
+    r = int(r1 + (r2 - r1) * ratio)
+    g = int(g1 + (g2 - g1) * ratio)
+    b = int(b1 + (b2 - b1) * ratio)
+
     return f"rgb({r},{g},{b})"
 
-# Crear lista de marcadores para el mapa
+#  Crear marcadores usando WeatherCode
+
 markers = [
     dl.CircleMarker(
         center=(row["Lat"], row["Lon"]),
         radius=10,
-        color=color_degradado(row["Lluvia (mm)"]),
+        color=color_weathercode(row["WeatherCode"]),
         fill=True,
-        fillColor=color_degradado(row["Lluvia (mm)"]),
-        fillOpacity=0.7,
-        children=dl.Tooltip(f"{row['Comuna']}: {row['Lluvia (mm)']} mm")
+        fillColor=color_weathercode(row["WeatherCode"]),
+        fillOpacity=0.8,
+        children=dl.Tooltip(
+            f"{row['Comuna']} | "
+            f"WeatherCode: {row['WeatherCode']} | "
+            f"{row['Temperatura (°C)']}°C"
+        )
     )
     for _, row in df.iterrows()
 ]
 
-# Se inicializa el dash
+# Inicializar Dash
+
 app = dash.Dash(__name__)
 
-# Obtener fecha y hora actual
 fecha_hora_actual = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
 
 app.layout = html.Div(
     style={'backgroundColor': 'black', 'color': 'red', 'padding': '20px', 'fontFamily': 'Arial'},
     children=[
-        html.H1("Lluvia en Comunas de Santiago de Cali"),
-        html.Div(f"Fecha y hora actual: {fecha_hora_actual}", style={'marginBottom': '20px', 'fontSize': 16}),
+        html.H1("Clima Actual en Comunas de Santiago de Cali"),
+        html.Div(f"Última actualización: {fecha_hora_actual}",
+                 style={'marginBottom': '20px', 'fontSize': 16}),
         
-        html.H2("Tabla de lluvias por comuna"),
+        html.H2("Tabla de clima actual por comuna"),
         dash_table.DataTable(
-            id='tabla-lluvia',
+            id='tabla-clima',
             columns=[{"name": i, "id": i} for i in df.columns],
             data=df.to_dict('records'),
             style_table={'overflowX': 'auto'},
@@ -126,7 +163,7 @@ app.layout = html.Div(
             }
         ),
         
-        html.H2("Mapa de lluvias por comuna"),
+        html.H2("Mapa climático según WeatherCode"),
         dl.Map(
             children=[
                 dl.TileLayer(),
