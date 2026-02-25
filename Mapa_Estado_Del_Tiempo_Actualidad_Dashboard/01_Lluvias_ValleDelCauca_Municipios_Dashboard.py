@@ -1,198 +1,183 @@
 # Ejemplo Dashboard con mapa de Valle del cauca y sus municipios
 # Un punto amarillo en el municipio que no llueve y
 # un punto azul en el municipio que llueve
-# pip install dash pandas requests pydeck
+# pip install dash pandas requests dash_leaflet
 # pip 25.3.1
 # Python 3.13.1
-
-import requests
+import requests 
 import pandas as pd
-from requests.adapters import HTTPAdapter
-from urllib3.util.retry import Retry
-from datetime import datetime
 import dash
-from dash import html, dash_table
-import pydeck as pdk
+from dash import html, dcc, dash_table
+import dash_leaflet as dl
+from datetime import datetime
 
-# ---------------- SESIÓN REQUEST ----------------
-session = requests.Session()
-retries = Retry(
-    total=3,
-    backoff_factor=1,
-    status_forcelist=[500, 502, 503, 504],
-    allowed_methods=["GET"]
-)
-adapter = HTTPAdapter(max_retries=retries)
-session.mount("https://", adapter)
-session.mount("http://", adapter)
-
-# ---------------- MUNICIPIOS VALLE ----------------
-MUNICIPIOS_VALLE = {
-    "Alcalá": (3.5013, -76.4976),
-    "Andalucía": (3.0020, -76.5845),
-    "Ansermanuevo": (4.0261, -76.2705),
-    "Argelia": (3.8794, -76.0153),
-    "Bolívar": (4.0913, -76.1362),
-    "Buenaventura": (3.8975, -77.0733),
-    "Bugalagrande": (4.0481, -76.1812),
-    "Caicedonia": (4.2877, -76.1005),
-    "Cali": (3.4516, -76.5320),
-    "Calima": (4.5028, -76.0722),
-    "Candelaria": (3.2933, -76.4621),
-    "Cartago": (4.7533, -75.9365),
-    "Dagua": (3.7940, -76.8412),
-    "El Águila": (4.0470, -76.1064),
-    "El Cairo": (4.4169, -76.2821),
-    "El Cerrito": (3.6082, -76.3205),
-    "Florida": (3.9227, -76.3950),
-    "Ginebra": (4.1393, -76.2191),
-    "Guacarí": (3.9727, -76.2850),
-    "Jamundí": (3.2156, -76.5293),
-    "La Cumbre": (3.5386, -76.5210),
-    "La Unión": (4.0336, -76.1927),
-    "La Victoria": (3.7819, -76.4502),
-    "Obando": (3.6170, -76.3050),
-    "Palmira": (3.5392, -76.3031),
-    "Pradera": (3.5627, -76.2923),
-    "Restrepo": (3.9634, -76.2142),
-    "Riofrío": (3.9283, -76.2217),
-    "Roldanillo": (4.4004, -76.0097),
-    "San Pedro": (3.8477, -76.2919),
-    "Sevilla": (4.2247, -75.9874),
-    "Toro": (4.0904, -76.0925),
-    "Trujillo": (4.1225, -76.1502),
-    "Tuluá": (4.0845, -76.1968),
-    "Ulloa": (3.8630, -76.1573),
-    "Versalles": (4.0165, -76.1155),
-    "Vijes": (3.7439, -76.2211),
-    "Yotoco": (3.5215, -76.3433),
-    "Yumbo": (3.5676, -76.5080),
-    "Zarzal": (4.1237, -76.1165)
+# Diccionario con los 42 municipios del Valle del Cauca y coordenadas aproximadas
+municipios = {
+    "Cali": {"lat": 3.4516, "lon": -76.5320},
+    "Palmira": {"lat": 3.5394, "lon": -76.3036},
+    "Buenaventura": {"lat": 3.8801, "lon": -77.0312},
+    "Tuluá": {"lat": 4.0847, "lon": -76.1954},
+    "Cartago": {"lat": 4.7464, "lon": -75.9117},
+    "Buga": {"lat": 3.9009, "lon": -76.2978},
+    "Jamundí": {"lat": 3.2607, "lon": -76.5343},
+    "Yumbo": {"lat": 3.5823, "lon": -76.4915},
+    "Candelaria": {"lat": 3.4067, "lon": -76.3482},
+    "Florida": {"lat": 3.3273, "lon": -76.2348},
+    "Pradera": {"lat": 3.4211, "lon": -76.2447},
+    "El Cerrito": {"lat": 3.6855, "lon": -76.3137},
+    "Ginebra": {"lat": 3.7243, "lon": -76.2665},
+    "Guacarí": {"lat": 3.7647, "lon": -76.3329},
+    "Yotoco": {"lat": 3.8590, "lon": -76.3842},
+    "Restrepo": {"lat": 3.8233, "lon": -76.5225},
+    "La Cumbre": {"lat": 3.6489, "lon": -76.5691},
+    "Dagua": {"lat": 3.6561, "lon": -76.6905},
+    "Calima (El Darién)": {"lat": 3.9330, "lon": -76.4850},
+    "Vijes": {"lat": 3.6986, "lon": -76.4428},
+    "San Pedro": {"lat": 3.9944, "lon": -76.2286},
+    "Trujillo": {"lat": 4.2122, "lon": -76.3189},
+    "Riofrío": {"lat": 4.1570, "lon": -76.2885},
+    "Andalucía": {"lat": 4.1703, "lon": -76.1665},
+    "Bugalagrande": {"lat": 4.2117, "lon": -76.1550},
+    "Zarzal": {"lat": 4.3953, "lon": -76.0715},
+    "La Unión": {"lat": 4.5323, "lon": -76.1030},
+    "Roldanillo": {"lat": 4.4138, "lon": -76.1546},
+    "Bolívar": {"lat": 4.3381, "lon": -76.1840},
+    "Toro": {"lat": 4.6111, "lon": -76.0814},
+    "La Victoria": {"lat": 4.5237, "lon": -75.9671},
+    "Obando": {"lat": 4.5950, "lon": -75.9486},
+    "Ansermanuevo": {"lat": 4.7972, "lon": -75.9950},
+    "Argelia": {"lat": 4.7286, "lon": -76.1214},
+    "El Águila": {"lat": 4.9130, "lon": -76.0463},
+    "El Cairo": {"lat": 4.7472, "lon": -76.2448},
+    "Alcalá": {"lat": 4.6740, "lon": -75.7823},
+    "Ulloa": {"lat": 4.7081, "lon": -75.7395},
+    "Versalles": {"lat": 4.6646, "lon": -76.2525},
+    "Caicedonia": {"lat": 4.3337, "lon": -75.8266},
+    "Sevilla": {"lat": 4.2647, "lon": -75.9289},
+    "El Dovio": {"lat": 4.5075, "lon": -76.2362}
 }
 
-# ---------------- API OPEN-METEO ----------------
-def obtener_datos_lluvia(municipios_dict):
-    datos = []
-    for municipio, (lat, lon) in municipios_dict.items():
-        url = (
-            f"https://api.open-meteo.com/v1/forecast"
-            f"?latitude={lat}"
-            f"&longitude={lon}"
-            f"&current_weather=true"
-            f"&hourly=precipitation"
-            f"&timezone=auto"
-        )
-        try:
-            response = session.get(url, timeout=5)
-            response.raise_for_status()
-            data = response.json()
-            current = data.get("current", {})
-            temperatura = current.get("temperature_2m")
-            lluvia = current.get("precipitation", 0)
-        except requests.exceptions.RequestException as e:
-            print(f"⚠️ Error consultando {municipio}: {e}")
-            temperatura = None
-            lluvia = 0
+# Función para obtener clima
+def obtener_clima_actual(lat, lon):
+    url = (
+        f"https://api.open-meteo.com/v1/forecast"
+        f"?latitude={lat}"
+        f"&longitude={lon}"
+        f"&current_weather=true"
+        f"&hourly=precipitation"
+        f"&timezone=auto"
+    )
+    try:
+        response = requests.get(url, timeout=5)
+        data = response.json()
 
-        datos.append({
+        current = data.get("current_weather", {})
+        hourly = data.get("hourly", {})
+
+        hora_actual = current.get("time")
+        precipitacion = 0
+
+        if "time" in hourly and hora_actual in hourly["time"]:
+            index = hourly["time"].index(hora_actual)
+            precipitacion = hourly["precipitation"][index]
+
+        return {
+            "temperatura": current.get("temperature", 0),
+            "viento": current.get("windspeed", 0),
+            "weathercode": current.get("weathercode", 0),
+            "precipitacion": precipitacion
+        }
+
+    except:
+        return None
+
+# Consultar clima
+resultados = []
+
+for municipio, coord in municipios.items():
+    clima = obtener_clima_actual(coord["lat"], coord["lon"])
+    
+    if clima:
+        resultados.append({
             "Municipio": municipio,
-            "Temperatura (°C)": temperatura,
-            "Lluvia (mm)": lluvia,
-            "Latitud": lat,
-            "Longitud": lon,
-            "Está lloviendo": "Sí" if lluvia > 0 else "No"
+            "Lat": coord["lat"],
+            "Lon": coord["lon"],
+            "Temperatura (°C)": clima["temperatura"],
+            "Viento (km/h)": clima["viento"],
+            "Lluvia (mm)": clima["precipitacion"],
+            "WeatherCode": clima["weathercode"]
         })
-    return pd.DataFrame(datos)
 
-# ---------------- MAPA PYDECK (SIN CAMBIOS) ----------------
-def crear_mapa_pydeck(df):
-    min_size = 500
-    max_size = 3000
-    max_lluvia = df["Lluvia (mm)"].max() if df["Lluvia (mm)"].max() > 0 else 1
+df = pd.DataFrame(resultados)
 
-    df["size"] = df["Lluvia (mm)"].fillna(0).apply(
-        lambda x: min_size + (x / max_lluvia) * (max_size - min_size)
+# Función de color por WeatherCode
+def color_weathercode(code, max_code=95):
+    ratio = min(max(code / max_code, 0), 1)
+    r1, g1, b1 = 255, 255, 0
+    r2, g2, b2 = 0, 0, 139
+    r = int(r1 + (r2 - r1) * ratio)
+    g = int(g1 + (g2 - g1) * ratio)
+    b = int(b1 + (b2 - b1) * ratio)
+    return f"rgb({r},{g},{b})"
+
+# Crear marcadores
+markers = [
+    dl.CircleMarker(
+        center=(row["Lat"], row["Lon"]),
+        radius=8,
+        color=color_weathercode(row["WeatherCode"]),
+        fill=True,
+        fillColor=color_weathercode(row["WeatherCode"]),
+        fillOpacity=0.8,
+        children=dl.Tooltip(
+            f"{row['Municipio']} | "
+            f"WeatherCode: {row['WeatherCode']} | "
+            f"{row['Temperatura (°C)']}°C"
+        )
     )
+    for _, row in df.iterrows()
+]
 
-    def color_por_lluvia(lluvia):
-        ratio = lluvia / max_lluvia
-        r = int(255 * (1 - ratio))
-        g = int(255 * (1 - ratio))
-        b = int(139 * ratio)
-        return [r, g, b]
-
-    df["color"] = df["Lluvia (mm)"].apply(color_por_lluvia)
-
-    layer = pdk.Layer(
-        "ScatterplotLayer",
-        data=df,
-        get_position=["Longitud", "Latitud"],
-        get_fill_color="color",
-        get_radius="size",
-        pickable=True
-    )
-
-    view_state = pdk.ViewState(
-        latitude=3.8,
-        longitude=-76.5,
-        zoom=8,
-        pitch=45
-    )
-
-    deck = pdk.Deck(
-        layers=[layer],
-        initial_view_state=view_state,
-        map_style="https://basemaps.cartocdn.com/gl/positron-gl-style/style.json",
-        tooltip={"text": "{Municipio}\nTemp: {Temperatura (°C)} °C\nLluvia: {Lluvia (mm)} mm\nEstá lloviendo: {Está lloviendo}"}
-    )
-
-    archivo = "mapa_lluvias_valle_pydeck.html"
-    deck.to_html(archivo, open_browser=False)
-    return archivo
-
-# ---------------- DASHBOARD ----------------
-df_municipios = obtener_datos_lluvia(MUNICIPIOS_VALLE)
-df_table = df_municipios.drop(columns=["color"], errors="ignore")
-mapa_html = crear_mapa_pydeck(df_municipios)
-
+# Inicializar Dash
 app = dash.Dash(__name__)
+
 fecha_hora_actual = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
 
 app.layout = html.Div(
-    style={
-        "backgroundColor": "black",
-        "color": "red",
-        "padding": "15px",
-        "fontFamily": "Arial"
-    },
+    style={'backgroundColor': 'black', 'color': 'red', 'padding': '20px', 'fontFamily': 'Arial'},
     children=[
-        html.H1("Dashboard con mapa de lluvias en municipios de Colombia"),
-        html.H4(f"Fecha y hora actual: {fecha_hora_actual}"),
-
-        html.H3("Tabla con datos de lluvia"),
+        html.H1("Clima Actual en Municipios del Valle del Cauca"),
+        html.Div(f"Última actualización: {fecha_hora_actual}",
+                 style={'marginBottom': '20px', 'fontSize': 16}),
+        
+        html.H2("Tabla de clima actual por municipio"),
         dash_table.DataTable(
-            data=df_table.to_dict("records"),
-            columns=[{"name": c, "id": c} for c in df_table.columns],
-            style_table={"overflowX": "auto"},
-            style_cell={
-                "textAlign": "center",
-                "padding": "6px",
-                "backgroundColor": "#e0e0e0",
-                "color": "black"
-            },
+            id='tabla-clima',
+            columns=[{"name": i, "id": i} for i in df.columns],
+            data=df.to_dict('records'),
+            style_table={'overflowX': 'auto'},
             style_header={
-                "backgroundColor": "red",
-                "color": "black",
-                "fontWeight": "bold"
+                'backgroundColor': 'black',
+                'color': 'red',
+                'fontWeight': 'bold',
+                'textAlign': 'center'
             },
-            page_size=10
+            style_cell={
+                'textAlign': 'center',
+                'backgroundColor': 'black',
+                'color': 'red'
+            }
         ),
-
-        html.H3("Mapa de lluvias (amarillo → azul según intensidad)"),
-        html.Iframe(
-            srcDoc=open(mapa_html, "r", encoding="utf-8").read(),
-            width="100%",
-            height="800"
+        
+        html.H2("Mapa climático según WeatherCode"),
+        dl.Map(
+            children=[
+                dl.TileLayer(),
+                dl.LayerGroup(markers)
+            ],
+            center=(3.8, -76.5),
+            zoom=8,
+            style={'width': '100%', 'height': '600px'}
         )
     ]
 )

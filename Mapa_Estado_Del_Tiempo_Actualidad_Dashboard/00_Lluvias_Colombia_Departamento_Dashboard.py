@@ -4,199 +4,173 @@
 # pip install dash pandas requests pydeck
 # pip 25.3.1
 # Python 3.13.1
-
-
-import requests
+import requests 
 import pandas as pd
-from requests.adapters import HTTPAdapter
-from urllib3.util.retry import Retry
-from datetime import datetime
 import dash
-from dash import html, dash_table
-import pydeck as pdk
+from dash import html, dcc, dash_table
+import dash_leaflet as dl
+from datetime import datetime
 
-# Codigo relacionado a la sesion request de la pagina web
-session = requests.Session()
-retries = Retry(
-    total=3,
-    backoff_factor=1,
-    status_forcelist=[500, 502, 503, 504],
-    allowed_methods=["GET"]
-)
-adapter = HTTPAdapter(max_retries=retries)
-session.mount("https://", adapter)
-session.mount("http://", adapter)
+# Diccionario con los 32 departamentos de Colombia + Bogotá D.C.
+# Coordenadas aproximadas de sus capitales
 
-# Coordenadas de cada departamento de colombia
-DEPARTAMENTOS = {
-    "Amazonas": (-1.4429, -71.5724),
-    "Antioquia": (6.5569, -75.8281),
-    "Arauca": (7.0900, -70.7617),
-    "Atlántico": (10.6966, -74.8741),
-    "Bolívar": (8.6704, -74.0300),
-    "Boyacá": (5.4545, -73.3620),
-    "Caldas": (5.2983, -75.2479),
-    "Caquetá": (0.8699, -73.8419),
-    "Casanare": (5.7589, -71.5724),
-    "Cauca": (2.7049, -76.8259),
-    "Cesar": (9.3373, -73.6536),
-    "Chocó": (5.2528, -76.8260),
-    "Córdoba": (8.0493, -75.5740),
-    "Cundinamarca": (4.6816, -74.1546),
-    "Guainía": (2.5854, -68.5247),
-    "Guaviare": (2.0439, -72.3311),
-    "Huila": (2.5359, -75.5277),
-    "La Guajira": (11.3548, -72.5205),
-    "Magdalena": (10.2240, -74.2017),
-    "Meta": (3.2719, -73.0877),
-    "Nariño": (1.2892, -77.3579),
-    "Norte de Santander": (7.9463, -72.8988),
-    "Putumayo": (0.4359, -75.5277),
-    "Quindío": (4.4610, -75.6674),
-    "Risaralda": (5.3158, -75.9928),
-    "San Andrés y Providencia": (12.5847, -81.7006),
-    "Santander": (6.6437, -73.6536),
-    "Sucre": (9.3047, -75.3978),
-    "Tolima": (4.0925, -75.1545),
-    "Valle del Cauca": (3.8009, -76.6413),
-    "Vaupés": (0.8554, -70.8110),
-    "Vichada": (4.4234, -69.2878),
-    "Bogotá D.C.": (4.7110, -74.0721)
+departamentos = {
+    "Amazonas": {"lat": -4.2153, "lon": -69.9406},        # Leticia
+    "Antioquia": {"lat": 6.2442, "lon": -75.5812},        # Medellín
+    "Arauca": {"lat": 7.0847, "lon": -70.7591},           # Arauca
+    "Atlántico": {"lat": 10.9685, "lon": -74.7813},       # Barranquilla
+    "Bolívar": {"lat": 10.3910, "lon": -75.4794},         # Cartagena
+    "Boyacá": {"lat": 5.5444, "lon": -73.3572},           # Tunja
+    "Caldas": {"lat": 5.0703, "lon": -75.5138},           # Manizales
+    "Caquetá": {"lat": 1.6144, "lon": -75.6062},          # Florencia
+    "Casanare": {"lat": 5.3378, "lon": -72.3959},         # Yopal
+    "Cauca": {"lat": 2.4448, "lon": -76.6147},            # Popayán
+    "Cesar": {"lat": 10.4631, "lon": -73.2532},           # Valledupar
+    "Chocó": {"lat": 5.6947, "lon": -76.6610},            # Quibdó
+    "Córdoba": {"lat": 8.7479, "lon": -75.8814},          # Montería
+    "Cundinamarca": {"lat": 4.7110, "lon": -74.0721},     # Bogotá
+    "Guainía": {"lat": 3.8653, "lon": -67.9239},          # Inírida
+    "Guaviare": {"lat": 2.5729, "lon": -72.6459},         # San José del Guaviare
+    "Huila": {"lat": 2.9386, "lon": -75.2819},            # Neiva
+    "La Guajira": {"lat": 11.5444, "lon": -72.9072},      # Riohacha
+    "Magdalena": {"lat": 11.2408, "lon": -74.1990},       # Santa Marta
+    "Meta": {"lat": 4.1420, "lon": -73.6266},             # Villavicencio
+    "Nariño": {"lat": 1.2136, "lon": -77.2811},           # Pasto
+    "Norte de Santander": {"lat": 7.8939, "lon": -72.5078},# Cúcuta
+    "Putumayo": {"lat": 0.5051, "lon": -76.4957},         # Mocoa
+    "Quindío": {"lat": 4.5350, "lon": -75.6757},          # Armenia
+    "Risaralda": {"lat": 4.8087, "lon": -75.6906},        # Pereira
+    "San Andrés y Providencia": {"lat": 12.5847, "lon": -81.7006},
+    "Santander": {"lat": 7.1193, "lon": -73.1227},        # Bucaramanga
+    "Sucre": {"lat": 9.3047, "lon": -75.3978},            # Sincelejo
+    "Tolima": {"lat": 4.4389, "lon": -75.2322},           # Ibagué
+    "Valle del Cauca": {"lat": 3.4516, "lon": -76.5320},  # Cali
+    "Vaupés": {"lat": 1.2537, "lon": -70.2339},           # Mitú
+    "Vichada": {"lat": 6.1850, "lon": -67.4932},          # Puerto Carreño
+    "Bogotá D.C.": {"lat": 4.7110, "lon": -74.0721}
 }
 
-# Funcion que consulta la api y recibe los datos relacionados a la lluvia
-def obtener_datos_lluvia():
-    datos = []
-    for depto, (lat, lon) in DEPARTAMENTOS.items():
-        url = (
-            f"https://api.open-meteo.com/v1/forecast"
-            f"?latitude={lat}"
-            f"&longitude={lon}"
-            f"&current_weather=true"
-            f"&hourly=precipitation"
-            f"&timezone=auto"
-        )
-
-        try:
-            response = session.get(url, timeout=5)
-            response.raise_for_status()
-            data = response.json()
-            current = data.get("current", {})
-            temperatura = current.get("temperature_2m")
-            lluvia = current.get("precipitation", 0)
-        except requests.exceptions.RequestException as e:
-            print(f"Error consultando {depto}: {e}")
-            temperatura = None
-            lluvia = 0
-
-        datos.append({
-            "Departamento": depto,
-            "Temperatura (°C)": temperatura,
-            "Lluvia (mm)": lluvia,
-            "Latitud": lat,
-            "Longitud": lon
-        })
-    return pd.DataFrame(datos)
-
-# Se crea el mapa con las caracteristicas
-def crear_mapa_pydeck(df):
-    min_size = 3000     # pequeño (sin lluvia)
-    max_size = 15000    # mediano (lluvia fuerte)
-
-    max_lluvia = df["Lluvia (mm)"].max()
-    max_lluvia = max_lluvia if max_lluvia > 0 else 1
-
-    # Tamaño progresivo
-    df["size"] = df["Lluvia (mm)"].apply(
-        lambda x: min_size + (x / max_lluvia) * (max_size - min_size)
+# Función para obtener clima
+def obtener_clima_actual(lat, lon):
+    url = (
+        f"https://api.open-meteo.com/v1/forecast"
+        f"?latitude={lat}"
+        f"&longitude={lon}"
+        f"&current_weather=true"
+        f"&hourly=precipitation"
+        f"&timezone=auto"
     )
+    try:
+        response = requests.get(url, timeout=5)
+        data = response.json()
 
-    # Color progresivo: amarillo hasta azul oscuro
-    def color_por_lluvia(lluvia):
-        ratio = lluvia / max_lluvia
+        current = data.get("current_weather", {})
+        hourly = data.get("hourly", {})
 
-        # Amarillo (255,255,0) → Azul oscuro (0,0,139)
-        r = int(255 * (1 - ratio))
-        g = int(255 * (1 - ratio))
-        b = int(139 * ratio)
+        hora_actual = current.get("time")
+        precipitacion = 0
 
-        return [r, g, b]
+        if "time" in hourly and hora_actual in hourly["time"]:
+            index = hourly["time"].index(hora_actual)
+            precipitacion = hourly["precipitation"][index]
 
-    df["color"] = df["Lluvia (mm)"].apply(color_por_lluvia)
-
-    layer = pdk.Layer(
-        "ScatterplotLayer",
-        data=df,
-        get_position=["Longitud", "Latitud"],
-        get_radius="size",
-        get_fill_color="color",
-        pickable=True,
-        auto_highlight=True
-    )
-
-    view_state = pdk.ViewState(
-        latitude=4.0,
-        longitude=-74.0,
-        zoom=5,
-        pitch=45
-    )
-
-    deck = pdk.Deck(
-        layers=[layer],
-        initial_view_state=view_state,
-        map_style="https://basemaps.cartocdn.com/gl/positron-gl-style/style.json",
-        tooltip={
-            "text": "{Departamento}\nTemp: {Temperatura (°C)} °C\nLluvia: {Lluvia (mm)} mm"
+        return {
+            "temperatura": current.get("temperature", 0),
+            "viento": current.get("windspeed", 0),
+            "weathercode": current.get("weathercode", 0),
+            "precipitacion": precipitacion
         }
+
+    except:
+        return None
+
+# Consultar clima
+resultados = []
+
+for departamento, coord in departamentos.items():
+    clima = obtener_clima_actual(coord["lat"], coord["lon"])
+    
+    if clima:
+        resultados.append({
+            "Departamento": departamento,
+            "Lat": coord["lat"],
+            "Lon": coord["lon"],
+            "Temperatura (°C)": clima["temperatura"],
+            "Viento (km/h)": clima["viento"],
+            "Lluvia (mm)": clima["precipitacion"],
+            "WeatherCode": clima["weathercode"]
+        })
+
+df = pd.DataFrame(resultados)
+
+# Función de color por WeatherCode
+def color_weathercode(code, max_code=95):
+    ratio = min(max(code / max_code, 0), 1)
+    r1, g1, b1 = 255, 255, 0
+    r2, g2, b2 = 0, 0, 139
+    r = int(r1 + (r2 - r1) * ratio)
+    g = int(g1 + (g2 - g1) * ratio)
+    b = int(b1 + (b2 - b1) * ratio)
+    return f"rgb({r},{g},{b})"
+
+# Crear marcadores
+markers = [
+    dl.CircleMarker(
+        center=(row["Lat"], row["Lon"]),
+        radius=8,
+        color=color_weathercode(row["WeatherCode"]),
+        fill=True,
+        fillColor=color_weathercode(row["WeatherCode"]),
+        fillOpacity=0.8,
+        children=dl.Tooltip(
+            f"{row['Departamento']} | "
+            f"WeatherCode: {row['WeatherCode']} | "
+            f"{row['Temperatura (°C)']}°C"
+        )
     )
+    for _, row in df.iterrows()
+]
 
-    tmp_html = "mapa_lluvias_colombia_pydeck.html"
-    deck.to_html(tmp_html, open_browser=False)
-    return tmp_html
-
-# Codigo relacionado al dashboard
-df = obtener_datos_lluvia()
-df_table = df.drop(columns=["color"], errors="ignore")
-mapa_html = crear_mapa_pydeck(df)
-
+# Inicializar Dash
 app = dash.Dash(__name__)
+
 fecha_hora_actual = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
 
 app.layout = html.Div(
-    style={
-        "backgroundColor": "black",
-        "color": "red",
-        "padding": "15px",
-        "fontFamily": "Arial"
-    },
+    style={'backgroundColor': 'black', 'color': 'red', 'padding': '20px', 'fontFamily': 'Arial'},
     children=[
-        html.H1("Dashboard de Lluvias en Colombia"),
-        html.H4(f"Fecha y hora actual: {fecha_hora_actual}"),
-
-        html.H3("Tabla de lluvia por departamento"),
+        html.H1("Clima Actual en Departamentos de Colombia"),
+        html.Div(f"Última actualización: {fecha_hora_actual}",
+                 style={'marginBottom': '20px', 'fontSize': 16}),
+        
+        html.H2("Tabla de clima actual por departamento"),
         dash_table.DataTable(
-            data=df_table.to_dict("records"),
-            columns=[{"name": c, "id": c} for c in df_table.columns],
-            style_table={"overflowX": "auto"},
-            style_cell={
-                "textAlign": "center",
-                "padding": "6px",
-                "backgroundColor": "#e6e6e6",
-                "color": "black"
-            },
+            id='tabla-clima',
+            columns=[{"name": i, "id": i} for i in df.columns],
+            data=df.to_dict('records'),
+            style_table={'overflowX': 'auto'},
             style_header={
-                "backgroundColor": "red",
-                "color": "black",
-                "fontWeight": "bold"
+                'backgroundColor': 'black',
+                'color': 'red',
+                'fontWeight': 'bold',
+                'textAlign': 'center'
             },
-            page_size=10
+            style_cell={
+                'textAlign': 'center',
+                'backgroundColor': 'black',
+                'color': 'red'
+            }
         ),
-
-        html.H3("Mapa que muestra en que departamento de Colombia llueve, amarillo pequeño no llueve hasta azul oscuro grande llueve bastante"),
-        html.Iframe(
-            srcDoc=open(mapa_html, "r", encoding="utf-8").read(),
-            width="100%",
-            height="800"
+        
+        html.H2("Mapa climático según WeatherCode"),
+        dl.Map(
+            children=[
+                dl.TileLayer(),
+                dl.LayerGroup(markers)
+            ],
+            center=(4.5, -74.0),
+            zoom=6,
+            style={'width': '100%', 'height': '600px'}
         )
     ]
 )

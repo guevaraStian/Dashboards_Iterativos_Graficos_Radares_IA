@@ -1,7 +1,7 @@
 # Ejemplo Dashboard con mapa de cali y sus comunas con 
 # Un punto amarillo en la comuna que no llueve y 
 # un punto azul en la comuna que llueve
-# pip install pandas requests dash
+# pip install pandas requests dash dash_leaflet
 # pip 25.3.1
 # Python 3.13.1
 
