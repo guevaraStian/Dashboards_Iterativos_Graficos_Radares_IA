@@ -15,7 +15,7 @@
 
 
 Los pasos para poner en ejecución son los siguientes
-Ir a la pagina web Git, luego descargarlo para tu sistema operativo, escoger la opción "add path" con el fin de poder ejecutar comandos de Python en la terminal de comandos, tambien se puede descargar el proyecto dando click en el boton verde que hay en la pagina github donde esta el software o ejecutando los siguientes pasos : 
+Ir a la pagina web Git, luego descargarlo para tu sistema operativo, escoger la opción "add path" con el fin de poder ejecutar comandos de Python en la terminal de comandos, : 
 
 ```Pagina web
 https://git-scm.com/downloads
@@ -25,6 +25,10 @@ Luego de tener instalado GIT podemos ejecutar los siguientes comandos en la carp
 ```Terminal de comandos
 python --version
 pip --version
+```
+Tambien se puede descargar el proyecto dando click en el boton verde que hay en la pagina github donde esta el software o ejecutando los siguientes pasos 
+
+```Terminal de comandos
 git init
 git clone https://github.com/guevaraStian/Dashboards_Iterativos.git
 cd Dashboards_Iterativos
@@ -32,3 +36,5 @@ git push origin master
 ```
 
 Luego de haber descargado los archivos, se procede a descargar librerias y ejecutar el proyecto
+
+<h2> ¡¡ ADVERTENCIA !! , TODOS LOS SOFTWARE DE ESTE REPOSITORIO, RELACIONADOS A CIBERSEGURIDAD TIENEN FUNCIONES EDUCATIVAS Y PEDAGOGICAS, NO DEBEN USARSE PARA VIOLAR PRIVACIDADES, NO DEBE USARSE SIN CONSENTIMIENTO DEL PROPIETARIO DEL DISPOSITIVO A HACKEAR. SON PROGRAMAS DE HACKING ETICO Y LA PERSONA QUE ACCEDAN A ESTOS SOFTWARE SON RESPONSABLE DE SU USO.</h2> 
