@@ -1,6 +1,9 @@
-# Software que escanea redes wifi cercanas y
-# Con el RSSID logra un pronostico de ubicacion del router
-#  pip install dash plotly pywifi pandas kaleido reportlab
+# Dashboard con radar en python con la ubicacion 
+# De dispositivos conectados a la red local
+# Se muestra un mapa con la ubicacion probable de cada dispositivo
+# pip install dash plotly pywifi pandas kaleido reportlab
+# pip 25.3.1
+# Python 3.13.1
 
 import time
 import math

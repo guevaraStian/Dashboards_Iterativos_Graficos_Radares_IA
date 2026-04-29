@@ -1,7 +1,8 @@
 # Monitoreo de plantas nucleares del mundo
 # Ubicacion, temperatura, humedad, radiacion
 # pip install dash dash-leaflet requests pandas
-# Python 3.14.3
+# pip 25.3.1
+# Python 3.13.1
 import requests
 import pandas as pd
 import dash

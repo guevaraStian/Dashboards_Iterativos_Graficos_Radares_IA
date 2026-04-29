@@ -1,6 +1,9 @@
-# En el siguiente codigo se muestra un dashboard
-# Con la ubicacion prbable de las paredes
-# Cerca al dispositivo emisor, usando sonido como señal
+# Dashboard con radar de la ubicacion de paredes cercanas
+# Usando el sonido se emite y se captura el tiempo de robote 
+# para validar donde estan las paredes
+# pip install dash plotly sounddevice pandas pdfkit
+# pip 25.3.1
+# Python 3.13.1
 
 import sounddevice as sd
 import numpy as np

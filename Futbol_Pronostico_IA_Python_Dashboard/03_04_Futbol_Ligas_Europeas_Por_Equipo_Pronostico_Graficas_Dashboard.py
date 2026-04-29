@@ -1,6 +1,10 @@
-# En el siguiente codigo se muestra una forma sencilla de crear
-# Un dashboard con los datos de los partidos de ligas europeas
+# Dashboard con informacion de equipos de 5 ligas de futbol europeo, con IA
+# Se solicita la informacion a una API web con todos los datos del equipo y con eso se crea
+# Una tabla, una grafica y un pronostico del siguiente numero
 # pip install flask pandas requests lxml beautifulsoup4
+# pip 25.3.1
+# Python 3.13.1
+
 import os
 import requests
 import pandas as pd

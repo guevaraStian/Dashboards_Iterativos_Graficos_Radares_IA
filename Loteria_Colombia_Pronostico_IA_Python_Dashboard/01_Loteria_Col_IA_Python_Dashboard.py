@@ -1,6 +1,9 @@
-# En el siguiente codigo se muestra un dashboarda con IA de
+# Dashboard con informacion de loterias en colombia con IA
 # Loteria colombia consultando una API web y con los datos crear
 # Una tabla, una grafica y un  pronostico del siguiente numero
+# pip install bleak flask pandas requests dash fpdf
+# pip 25.3.1
+# Python 3.13.1
 
 import pandas as pd
 import requests

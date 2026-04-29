@@ -1,8 +1,9 @@
-# DASHBOARD DE HOMICIDIOS COLOMBIA POR DEPARTAMENTO
-# TAMBIEN HAY GRAFICAS DEL DASHBOARD FILTRADA POR DEPARTAMENTO AÑO
-# TAMBIEN HAY UN MAPA QUE MUESTRAN LOS DATOS POR DIA
-
-
+# Dashboard con informacion de homicidios en colombia por departamento del pais, con IA
+# Se solicita la informacion a una API web con los datos de los homicidios en colombia y e crea
+# Una tabla, una grafica y un pronostico del siguiente numero, por departamento y año
+# pip install flask pandas requests
+# pip 25.3.1
+# Python 3.13.1
 import requests
 import pandas as pd
 import dash

@@ -1,6 +1,9 @@
-# DASHBOARD DE HOMICIDIOS COLOMBIA POR DEPARTAMENTO
-# CON INTELIGENCIA ARTIFICIAL, MACHINE LEARNING Y REGRESION LINEAL
-# TAMBIEN HAY GRAFICAS DEL DASHBOARD FILTRADA POR AÑO, MES Y DEPARTAMENTO
+# Dashboard con informacion de homicidios en colombia por departamento del pais y el mes de cada año, con IA y machine learning
+# Se solicita la informacion a una API web con los datos de los homicidios en colombia y e crea
+# Una tabla, una grafica, mapa y un pronostico del siguiente numero, por departamento y dia
+# pip install flask pandas requests dash
+# pip 25.3.1
+# Python 3.13.1
 
 import requests 
 import pandas as pd

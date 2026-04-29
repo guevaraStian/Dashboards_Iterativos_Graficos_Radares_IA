@@ -1,5 +1,9 @@
+# Dashboard con radar de la ubicacion en un mapa de bluetooth cercanos
+# Obtener varios datos de los dispositivos bluetooth cercanos
+# y como mostrar los datos en una pagina web
 # pip install bleak flask
-# Python 3.13
+# pip 25.3.1
+# Python 3.13.1
 
 import asyncio
 import threading

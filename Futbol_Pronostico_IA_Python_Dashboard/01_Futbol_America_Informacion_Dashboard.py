@@ -1,6 +1,9 @@
-# El siguiente codigo muestra una forma sencilla de crear
-# Un dashboard con tablas de informacion del america de cali
+# Dashboard con informacion de equipo de futbol america de cali, colombia con IA
+# Se solicita la informacion a una API web con todos los datos del equipo y con eso se crea
+# Una tabla, una grafica y un  pronostico del siguiente numero
 # pip install flask pandas requests lxml beautifulsoup4
+# pip 25.3.1
+# Python 3.13.1
 
 from flask import Flask, render_template_string
 import pandas as pd

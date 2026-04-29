@@ -1,3 +1,9 @@
+# Dashboard con radar en python con la ubicacion 
+# De dispositivos conectados a la red local
+# Se muestra el radar con la posible ubicacion en metros
+# pip install flask
+# pip 25.3.1
+# Python 3.13.1
 from flask import Flask, jsonify, render_template, send_file
 from network_scanner import scan_network
 from exporter import export_excel, export_pdf
