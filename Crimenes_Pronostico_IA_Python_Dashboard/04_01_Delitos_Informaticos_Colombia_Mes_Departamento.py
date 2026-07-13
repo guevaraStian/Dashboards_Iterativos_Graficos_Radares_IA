@@ -1,6 +1,6 @@
 # Dashboard con informacion de los ultimos delitos informaticos cometidos en colombia
 # Se solicita la informacion a una API web con los datos de los delitos informaticos documentados
-# Una tabla, un json, con datos de cada registro
+# Una tabla, mapa, un json, con datos de cada registro
 # pip install flask pandas requests dash
 # pip 26.1.1
 # Python 3.13.9
