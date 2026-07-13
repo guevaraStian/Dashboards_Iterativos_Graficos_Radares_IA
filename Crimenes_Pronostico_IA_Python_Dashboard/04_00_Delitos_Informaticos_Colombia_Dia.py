@@ -1,3 +1,10 @@
+# Dashboard con informacion de delitos informaticos en colombia organizados por dia y departamento
+# Se solicita la informacion a una API web con los datos de los delitos informaticos en colombia y se crea
+# Una tabla, una grafica
+# pip install flask pandas requests dash streamlit
+# pip 25.3.1
+# Python 3.13.1
+
 from datetime import datetime
 import json
 import time
