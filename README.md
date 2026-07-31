@@ -26,7 +26,29 @@ Luego de tener instalado GIT podemos ejecutar los siguientes comandos en la carp
 python --version
 pip --version
 ```
-Tambien se puede descargar el proyecto dando click en el boton verde que hay en la pagina github donde esta el software o ejecutando los siguientes pasos 
+
+El comando de consola para intalar GIT en cada sistema operativo es el siguiente.
+
+WINDOWS
+```Windows
+winget install --id Git.Git -e --source winget
+```
+
+LINUX, Fedora, Arch Linux, CentOS
+```Linux Fedora, Arch Linux, CentOS
+sudo dnf install git -y
+sudo pacman -S git
+sudo yum install git -y
+```
+MAC
+```MAC
+brew install git
+```
+
+
+
+
+Tambien se puede descargar el proyecto dando click en el boton verde que hay en la pagina github donde esta el software o ejecutando los siguientes pasos en la terminal de comandos.
 
 ```Terminal de comandos
 git init
